@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>輕小說書架｜卷數、新刊日、完結狀態</title>
+<meta name="description" content="即時查詢輕小說的卷數、下一卷發售日與完結狀態。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF2F7; --card:#FFFFFF; --ink:#14213D; --ink-2:#4B5A78; --line:#D3DBE8;
+  --cobalt:#2F5BEA; --cobalt-ink:#FFFFFF;
+  --amber:#B86E00; --amber-bg:#FFF1D6;
+  --green:#1F7A5C; --green-bg:#DDF3EA;
+  --rose:#B23A48; --rose-bg:#FBE3E6;
+  --slate-bg:#E3E8F1;
+  --spine:#14213D; --spine-off:#C3CCDC;
+  --shadow:0 1px 0 rgba(20,33,61,.06);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1626; --card:#172036; --ink:#E7ECF7; --ink-2:#9AA8C6; --line:#2A3757;
+    --cobalt:#6C8CFF; --cobalt-ink:#0F1626;
+    --amber:#F2B450; --amber-bg:#3A2C10;
+    --green:#5FD0A5; --green-bg:#143327;
+    --rose:#F08A96; --rose-bg:#3D1B21;
+    --slate-bg:#212C47; --spine:#E7ECF7; --spine-off:#33415F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1626; --card:#172036; --ink:#E7ECF7; --ink-2:#9AA8C6; --line:#2A3757;
+  --cobalt:#6C8CFF; --cobalt-ink:#0F1626;
+  --amber:#F2B450; --amber-bg:#3A2C10;
+  --green:#5FD0A5; --green-bg:#143327;
+  --rose:#F08A96; --rose-bg:#3D1B21;
+  --slate-bg:#212C47; --spine:#E7ECF7; --spine-off:#33415F;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Hiragino Sans",sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+/* header / search hero */
+header.top{padding:40px 0 20px}
+.brand{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:28px}
+.brand h1{margin:0;font-size:clamp(28px,5vw,44px);font-weight:900;letter-spacing:.02em;line-height:1.15}
+.brand p{margin:6px 0 0;color:var(--ink-2);font-size:15px}
+.theme-btn{border:1px solid var(--line);background:var(--card);border-radius:999px;width:42px;height:42px;cursor:pointer;flex:none;font-size:18px}
+.search{position:relative}
+.search input{width:100%;height:60px;padding:0 56px 0 20px;font-size:18px;background:var(--card);border:2px solid var(--ink);border-radius:14px;box-shadow:6px 6px 0 var(--ink);transition:box-shadow .15s,transform .15s}
+.search input:focus{outline:none;border-color:var(--cobalt);box-shadow:6px 6px 0 var(--cobalt)}
+.search input::placeholder{color:var(--ink-2)}
+.search .clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;border-radius:50%;background:var(--slate-bg);cursor:pointer;display:none}
+.search.has-text .clear{display:block}
+
+/* toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:34px 0 18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.selects{display:flex;gap:8px;flex-wrap:wrap}
+select{height:38px;padding:0 10px;border:1px solid var(--line);background:var(--card);border-radius:10px;font-size:14px}
+.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--ink-2);font-size:13px;margin-bottom:14px}
+.meta button{background:none;border:0;color:var(--cobalt);cursor:pointer;padding:0;text-decoration:underline}
+
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.card{display:grid;grid-template-columns:96px 1fr;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow);text-align:left;cursor:pointer;width:100%}
+.card:hover{border-color:var(--ink)}
+.cover{width:96px;aspect-ratio:2/3;border-radius:6px;background:var(--slate-bg);object-fit:cover;display:block}
+.info{min-width:0;display:flex;flex-direction:column;gap:6px}
+.title{margin:0;font-size:16.5px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.sub{margin:0;color:var(--ink-2);font-size:12.5px;line-height:1.4;overflow-wrap:anywhere}
+.badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.b-done{background:var(--green-bg);color:var(--green)}
+.b-run{background:var(--amber-bg);color:var(--amber)}
+.b-new{background:var(--slate-bg);color:var(--ink-2)}
+.b-stop{background:var(--rose-bg);color:var(--rose)}
+.row{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13.5px}
+.vol strong{font-size:20px;font-weight:900}
+.next{font-size:13px}
+.next b{color:var(--amber)}
+.next a{color:var(--cobalt)}
+.next.none{color:var(--ink-2)}
+
+/* the volume shelf: one spine per volume */
+.shelf{display:flex;align-items:flex-end;gap:2px;height:22px;margin-top:auto;padding-top:4px}
+.shelf i{display:block;width:5px;height:100%;background:var(--spine);border-radius:1px}
+.shelf i:nth-child(3n){height:82%}
+.shelf i:nth-child(5n+2){height:92%}
+.shelf i.next-spine{background:transparent;border:1.5px dashed var(--amber);width:7px}
+.shelf i.unknown{background:var(--spine-off)}
+.shelf small{margin-left:6px;color:var(--ink-2);font-size:12px;align-self:center}
+
+.skeleton{height:168px;border-radius:12px;background:linear-gradient(90deg,var(--slate-bg),var(--card),var(--slate-bg));background-size:200% 100%;animation:sh 1.4s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.more{display:flex;justify-content:center;margin:28px 0 8px}
+.more button{background:var(--cobalt);color:var(--cobalt-ink);border:0;border-radius:12px;padding:12px 28px;font-weight:700;cursor:pointer}
+.more button:disabled{opacity:.6;cursor:wait}
+.state{text-align:center;padding:48px 16px;color:var(--ink-2)}
+.state strong{display:block;color:var(--ink);font-size:18px;margin-bottom:6px}
+
+/* dialog */
+dialog{border:0;border-radius:16px;padding:0;max-width:640px;width:calc(100% - 24px);background:var(--card);color:var(--ink);max-height:88vh}
+dialog::backdrop{background:rgba(10,15,30,.55)}
+.dlg{display:grid;grid-template-columns:150px 1fr;gap:20px;padding:22px}
+@media (max-width:560px){.dlg{grid-template-columns:1fr}.dlg .cover{width:130px}}
+.dlg .cover{width:150px}
+.dlg h2{margin:0 0 4px;font-size:22px;line-height:1.3}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:14px 0;font-size:14.5px}
+.facts dt{color:var(--ink-2)}
+.facts dd{margin:0}
+.desc{font-size:14px;color:var(--ink-2);max-height:180px;overflow:auto;white-space:pre-line}
+.dlg-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.dlg-actions a,.dlg-actions button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 16px;text-decoration:none;cursor:pointer;font-size:14px}
+.dlg-actions a.primary{background:var(--cobalt);color:var(--cobalt-ink);border-color:var(--cobalt);font-weight:700}
+.notice{margin:16px 0 0;padding:12px 14px;border:1px solid var(--amber);background:var(--amber-bg);color:var(--ink);border-radius:10px;font-size:14px}
+.notice a{color:var(--cobalt);font-weight:700}
+.toggle{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;height:38px}
+.toggle input{width:16px;height:16px;accent-color:var(--cobalt)}
+.parts{margin:16px 0 0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.parts li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.parts a{text-decoration:none;font-weight:700;overflow-wrap:anywhere}
+.parts a:hover{text-decoration:underline}
+.parts .pm{color:var(--ink-2);font-size:13px;grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.dlg h3{margin:16px 0 0;font-size:14px;color:var(--ink-2);font-weight:700}
+.src{display:inline-block;margin-left:6px;padding:0 6px;border:1px solid var(--line);border-radius:5px;font-size:11px;color:var(--ink-2);vertical-align:1px;white-space:nowrap}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+.tags span{background:var(--slate-bg);border-radius:999px;padding:1px 10px;font-size:12.5px}
+.links{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:13.5px}
+.links a{color:var(--cobalt)}
+.srcline{margin:0 0 4px;color:var(--ink-2);font-size:12px}
+.desc-label{margin:12px 0 4px;font-size:12px;color:var(--ink-2)}
+.loading-line{color:var(--ink-2);font-size:13px;margin:12px 0 0}
+footer{margin:48px 0 32px;color:var(--ink-2);font-size:13px}
+footer p{margin:4px 0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="notice" class="notice" hidden></div>
+  <header class="top">
+    <div class="brand">
+      <div>
+        <h1>輕小說書架</h1>
+        <p>卷數、下一卷發售日、完結狀態，打開就是最新資料。</p>
+      </div>
+      <button class="theme-btn" id="themeBtn" aria-label="切換深色／淺色模式">◐</button>
+    </div>
+    <div class="search" id="searchBox">
+      <input id="q" type="search" autocomplete="off" enterkeyhint="search"
+        placeholder="搜尋書名（中文、日文、羅馬拼音、英文皆可）" aria-label="搜尋輕小說">
+      <button class="clear" id="clearBtn" aria-label="清除搜尋">✕</button>
+    </div>
+  </header>
+
+  <section aria-label="篩選">
+    <div class="toolbar">
+      <div class="chips" id="chips" role="group" aria-label="狀態篩選"></div>
+      <div class="selects">
+        <select id="sort" aria-label="排序">
+          <option value="POPULARITY_DESC">人氣優先</option>
+          <option value="UPDATED_AT_DESC">最近更新</option>
+          <option value="START_DATE_DESC">最新發售</option>
+          <option value="SCORE_DESC">評分最高</option>
+          <option value="TITLE_NATIVE">依書名排序</option>
+        </select>
+        <label class="toggle"><input type="checkbox" id="groupToggle" checked> 依系列合併</label>
+        <select id="lang" aria-label="標題語言">
+          <option value="zh">中文名優先</option>
+          <option value="native">日文原名</option>
+          <option value="romaji">羅馬拼音</option>
+          <option value="english">英文名</option>
+        </select>
+      </div>
+    </div>
+    <div class="meta">
+      <span id="count">載入中…</span>
+      <span><span id="updated"></span> <span id="dataAge"></span> <button id="refresh">立即更新</button></span>
+    </div>
+  </section>
+
+  <main>
+    <div class="grid" id="grid" aria-live="polite"></div>
+    <div class="more"><button id="moreBtn" hidden>載入更多</button></div>
+  </main>
+
+  <footer>
+    <p>作品資料：AniList、MyAnimeList（Jikan）。中文書名與簡介：Bangumi、維基資料（Wikidata）、AniList 別名（簡體內容自動轉繁體）。</p>
+    <p>發售日、最新刊、作者與出版社：樂天 Books、Google Books（日本原版），連載中作品約每 6 小時更新。各來源卷數不一致時，完結作品以 AniList 優先，連載中取最大值。</p>
+    <p>AniList 常把同一部作品拆成「1年生編」「2年生編」等多筆，本站依續作關聯合併成一個系列並加總卷數；不想合併可取消上方勾選。</p>
+    <p>若有錯誤，以 data/next-volumes.json 的手動設定為準。</p>
+    <p id="dataStatus"></p>
+  </footer>
+</div>
+
+<dialog id="dlg" aria-label="作品詳情"></dialog>
+
+<script>
+const API = 'https://graphql.anilist.co';
+const PER_PAGE = 30;
+const REFRESH_MS = 5 * 60 * 1000;
+
+const STATUS = {
+  FINISHED:        { label:'已完結',   cls:'b-done' },
+  RELEASING:       { label:'連載中',   cls:'b-run'  },
+  NOT_YET_RELEASED:{ label:'尚未發售', cls:'b-new'  },
+  HIATUS:          { label:'休刊中',   cls:'b-stop' },
+  CANCELLED:       { label:'已中止',   cls:'b-stop' }
+};
+const CHIPS = [
+  { key:'',                 label:'全部' },
+  { key:'RELEASING',        label:'連載中' },
+  { key:'FINISHED',         label:'已完結' },
+  { key:'NOT_YET_RELEASED', label:'尚未發售' },
+  { key:'HIATUS',           label:'休刊中' },
+  { key:'__NEXT',           label:'已公布新刊日' }
+];
+
+const state = { q:'', status:'', sort:'POPULARITY_DESC', lang:'zh', page:0, hasNext:false, total:0, items:[], loading:false, token:0, group:true };
+const $ = s => document.querySelector(s);
+
+/* ---------- utils ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = d => !(d && d.year) ? '' : [d.year, d.month && String(d.month).padStart(2,'0'), d.month && d.day && String(d.day).padStart(2,'0')].filter(Boolean).join('/');
+const plain = html => { const t = document.createElement('textarea'); t.innerHTML = String(html||'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,''); return t.value.trim(); };
+const norm = s => String(s||'').toLowerCase().replace(/\s+/g,'');
+function daysUntil(iso){
+  const d = new Date(iso + 'T00:00:00'); if (isNaN(d)) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((d - today) / 86400000);
+}
+function countdown(iso){
+  const n = daysUntil(iso); if (n === null) return '';
+  if (n < 0) return '（已發售）';
+  if (n === 0) return '（今天發售）';
+  return `（${n} 天後）`;
+}
+
+/* ---------- data ---------- */
+async function gql(query, variables, tries = 3){
+  for (let i = 0; i < tries; i++){
+    const res = await fetch(API, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
+      body: JSON.stringify({ query, variables })
+    });
+    if (res.status === 429){
+      const wait = (parseInt(res.headers.get('Retry-After')) || 5) * 1000;
+      await new Promise(r => setTimeout(r, Math.min(wait, 15000)));
+      continue;
+    }
+    const json = await res.json();
+    if (json.errors) throw new Error(json.errors[0].message);
+    return json.data;
+  }
+  throw new Error('請求過於頻繁，請稍後再試');
+}
+
+const QUERY = `
+query($page:Int,$perPage:Int,$search:String,$status:MediaStatus,$sort:[MediaSort],$ids:[Int]){
+  Page(page:$page,perPage:$perPage){
+    pageInfo{ total hasNextPage }
+    media(type:MANGA,format:NOVEL,isAdult:false,search:$search,status:$status,sort:$sort,id_in:$ids){
+      id siteUrl updatedAt
+      title{ romaji english native }
+      coverImage{ large color }
+      volumes chapters status averageScore genres description(asHtml:false)
+      startDate{ year month day } endDate{ year month day }
+    }
+  }
+}`;
+
+/* 三份靜態資料（都是選用：缺了網站照常運作）
+   manual：人工設定（最優先）／auto：每日自動抓的發售日／zhIdx：中文書名索引 */
+let manual = {}, auto = {}, zhIdx = {}, autoUpdated = '';
+let mal = {}, bgm = {};   // MyAnimeList / Bangumi 的列表用精簡資料
+let groups = [], groupOf = new Map();   // 系列分組：[[id, id, ...], ...]
+const cache = new Map();                // id -> AniList 條目（含分組成員）
+async function loadJSON(url){
+  try{
+    const r = await fetch(`${url}?t=${Math.floor(Date.now() / 60000)}`, { cache:'no-store' });
+    if (r.ok) return await r.json();
+  }catch(e){}
+  return null;
+}
+async function loadData(){
+  const [man, aut, zh, ser, ml, bg, serMan] = await Promise.all([
+    loadJSON('data/next-volumes.json'), loadJSON('data/auto-next.json'), loadJSON('data/zh-index.json'), loadJSON('data/series.json'),
+    loadJSON('data/mal.json'), loadJSON('data/bangumi.json'), loadJSON('data/series-manual.json')
+  ]);
+  manual = {};
+  if (man) for (const k in man) if (/^\d+$/.test(k) && k !== '0000') manual[k] = man[k];
+  auto = aut?.items || {};
+  autoUpdated = aut?.updated || '';
+  zhIdx = zh?.items || {};
+  mal = ml?.items || {};
+  bgm = bg?.items || {};
+  groups = mergeGroups(ser?.groups || [], serMan?.groups || []);
+  groupOf = new Map();
+  groups.forEach((g, i) => g.forEach(id => groupOf.set(id, i)));
+  showDataStatus();
+  const el = $('#dataAge');
+  const hrs = autoUpdated ? Math.max(0, Math.round((Date.now() - Date.parse(autoUpdated)) / 3600000)) : null;
+  el.textContent = hrs === null ? '' : `· 發售資料 ${hrs < 1 ? '1 小時內' : hrs < 48 ? hrs + ' 小時前' : Math.round(hrs / 24) + ' 天前'}更新`;
+}
+
+/* 繁簡轉換：只有搜尋到漢字時才載入（約 70KB），載入失敗就退回原樣比對 */
+let t2s = s => s, openccPromise = null;
+function ensureOpenCC(){
+  if (openccPromise) return openccPromise;
+  openccPromise = new Promise(resolve => {
+    const el = document.createElement('script');
+    el.src = 'https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/t2cn.js';
+    el.onload = () => { try{ t2s = OpenCC.Converter({ from:'tw', to:'cn' }); }catch(e){} resolve(); };
+    el.onerror = () => resolve();
+    document.head.appendChild(el);
+  });
+  return openccPromise;
+}
+// 規則必須與 scripts/lib.mjs 的 normalizeKey 完全一致
+const normalizeKey = s => t2s(String(s ?? '').normalize('NFKC')).toLowerCase().replace(/[\s\p{P}\p{S}]+/gu, '');
+const HAN = /\p{Script=Han}/u;
+
+/* 中文／別名搜尋：比對索引，回傳 AniList ID（最多 30 個） */
+function localMatchIds(q){
+  const qk = normalizeKey(q); if (!qk) return [];
+  const hits = new Map();
+  const bump = (id, score) => hits.set(id, Math.max(hits.get(id) || 0, score));
+  const test = (id, k) => { if (k === qk) bump(id, 3); else if (k.startsWith(qk)) bump(id, 2); else if (k.includes(qk)) bump(id, 1); };
+  for (const id in zhIdx){ const v = zhIdx[id]; for (let i = 1; i < v.length; i++) test(Number(id), v[i]); }
+  for (const id in manual){
+    const o = manual[id];
+    for (const t of [o.zh, ...(o.aliases || [])]) if (t) test(Number(id), normalizeKey(t));
+  }
+  return [...hits.entries()].sort((a, b) => b[1] - a[1]).map(x => x[0]).slice(0, 30);
+}
+
+/* 下一卷資訊：manual 優先（可用 "next": null 明確清除自動資料） */
+function nextOf(id){
+  const o = manual[id];
+  if (o && 'next' in o) return o.next || null;
+  return auto[id]?.next || null;
+}
+const todayISO = () => new Date().toLocaleDateString('sv-SE');
+function nextKey(n){
+  if (!n) return '';
+  if (n.date) return n.date;
+  const m = String(n.approx || '').match(/(\d{4})年(\d{1,2})月/);
+  if (!m) return '';
+  const tail = /上旬/.test(n.approx) ? '05' : /中旬/.test(n.approx) ? '15' : /下旬/.test(n.approx) ? '25' : '28';
+  return `${m[1]}-${m[2].padStart(2, '0')}-${tail}`;
+}
+function nextList(){
+  const today = todayISO(), out = [];
+  for (const id of new Set([...Object.keys(manual), ...Object.keys(auto)])){
+    const key = nextKey(nextOf(id));
+    if (key && key >= today) out.push({ id: Number(id), key });
+  }
+  return out.sort((a, b) => a.key.localeCompare(b.key));
+}
+
+function buildVars(page){
+  const v = { page, perPage: PER_PAGE };
+  const q = state.q.trim();
+  let sort = state.sort;
+  if (q){ v.search = q; sort = 'SEARCH_MATCH'; }
+  v.sort = [sort];
+  if (state.status === '__NEXT'){
+    const ids = nextList().map(x => x.id);
+    v.ids = ids.length ? ids : [-1];
+  } else if (state.status){
+    v.status = state.status;
+  }
+  return v;
+}
+
+async function fetchNextPage(page){
+  const list = nextList();
+  const slice = list.slice((page - 1) * PER_PAGE, page * PER_PAGE).map(x => x.id);
+  if (!slice.length) return { items: [], pageInfo: { total: 0, hasNextPage: false } };
+  const data = await gql(QUERY, { page: 1, perPage: PER_PAGE, ids: slice, sort: ['POPULARITY_DESC'] });
+  const byId = new Map(data.Page.media.map(m => [m.id, m]));
+  return {
+    items: slice.map(id => byId.get(id)).filter(Boolean),
+    pageInfo: { total: list.length, hasNextPage: page * PER_PAGE < list.length }
+  };
+}
+
+async function fetchPage(page){
+  const q = state.q.trim();
+  if (state.status === '__NEXT' && !q) return fetchNextPage(page);
+  if (q && HAN.test(q)) await ensureOpenCC();
+
+  const data = await gql(QUERY, buildVars(page));
+  let items = data.Page.media;
+
+  if (page === 1 && q){
+    let ids = localMatchIds(q);
+    if (state.status === '__NEXT'){ const ok = new Set(nextList().map(x => x.id)); ids = ids.filter(id => ok.has(id)); }
+    if (ids.length){
+      const vars = { page: 1, perPage: 30, ids, sort: ['POPULARITY_DESC'] };
+      if (state.status && state.status !== '__NEXT') vars.status = state.status;
+      const extra = (await gql(QUERY, vars)).Page.media;
+      const order = new Map(ids.map((id, i) => [id, i]));
+      extra.sort((a, b) => order.get(a.id) - order.get(b.id));
+      const seen = new Set(extra.map(m => m.id));
+      items = [...extra, ...items.filter(m => !seen.has(m.id))];
+    }
+  }
+  return { items, pageInfo: data.Page.pageInfo };
+}
+
+/* 把同系列、但這一頁沒出現的成員也補抓回來，才能算出整個系列的卷數與狀態 */
+async function hydrate(items){
+  for (const m of items) cache.set(m.id, m);
+  if (!state.group) return;
+  const need = new Set();
+  for (const m of items){
+    const gi = groupOf.get(m.id);
+    if (gi !== undefined) for (const id of groups[gi]) if (!cache.has(id)) need.add(id);
+  }
+  const list = [...need];
+  for (let i = 0; i < list.length; i += 50){
+    const data = await gql(QUERY, { page: 1, perPage: 50, ids: list.slice(i, i + 50), sort: ['ID'] });
+    for (const m of data.Page.media) cache.set(m.id, m);
+  }
+}
+
+async function load(reset, depth = 0){
+  if (state.loading && !reset) return;
+  state.loading = true;
+  const token = ++state.token;
+  if (reset){ state.page = 0; state.items = []; renderSkeleton(); }
+  $('#moreBtn').disabled = true;
+  let again = false;
+  try{
+    const { items, pageInfo } = await fetchPage(state.page + 1);
+    await hydrate(items);
+    if (token !== state.token) return;
+    state.page += 1;
+    const known = new Set(state.items.map(m => m.id));
+    state.items.push(...items.filter(m => !known.has(m.id)));
+    state.hasNext = pageInfo.hasNextPage;
+    state.total = pageInfo.total;
+    render();
+    stamp();
+    // 合併後再依狀態過濾，一頁可能只剩幾筆；自動多抓幾頁補足
+    again = state.group && state.status && state.status !== '__NEXT' && state.hasNext && depth < 4 && entriesFiltered().length < 12;
+  }catch(err){
+    if (token !== state.token) return;
+    showError(err);
+  }finally{
+    if (token === state.token){ state.loading = false; $('#moreBtn').disabled = false; }
+  }
+  if (again && token === state.token) return load(false, depth + 1);
+}
+
+/* 背景靜默更新：重抓資料檔與目前已載入的頁數 */
+async function silentRefresh(){
+  if (state.loading || !state.page) return;
+  const token = state.token;
+  try{
+    await loadData();
+    let all = [];
+    cache.clear();
+    for (let p = 1; p <= state.page; p++){
+      const { items } = await fetchPage(p);
+      await hydrate(items);
+      all.push(...items);
+    }
+    if (token !== state.token) return;
+    const seen = new Set();
+    state.items = all.filter(m => !seen.has(m.id) && seen.add(m.id));
+    render(); stamp();
+  }catch(e){ /* 靜默失敗，保留舊資料 */ }
+}
+
+/* ---------- view model ---------- */
+/* 手動指定的系列優先；與自動分組重疊時併成同一組 */
+function mergeGroups(base, extra){
+  const out = base.map(g => [...g]);
+  for (const mg of extra){
+    if (!Array.isArray(mg) || mg.length < 2) continue;
+    const ids = new Set(mg), merged = [...mg];
+    for (let i = out.length - 1; i >= 0; i--){
+      if (out[i].some(id => ids.has(id))){
+        for (const id of out[i]) if (!ids.has(id)){ ids.add(id); merged.push(id); }
+        out.splice(i, 1);
+      }
+    }
+    out.push(merged);
+  }
+  return out;
+}
+
+function showDataStatus(){
+  const n = o => Object.keys(o || {}).length;
+  const rows = [['MAL', n(mal)], ['Bangumi', n(bgm)], ['樂天', n(auto)], ['中文名', n(zhIdx)], ['系列', groups.length]];
+  $('#dataStatus').textContent = '資料狀態：' + rows.map(([k, c]) => `${k} ${c ? c.toLocaleString() + ' 筆' : '尚無資料'}`).join('・');
+  // 所有自動資料都是空的 → 代表 GitHub Actions 還沒跑過，主動提醒
+  const empty = rows.every(([, c]) => !c);
+  const box = $('#notice');
+  if (empty){
+    const host = location.hostname, m = host.match(/^(.+)\.github\.io$/), repo = location.pathname.split('/')[1];
+    const url = m && repo ? `https://github.com/${m[1]}/${repo}/actions/workflows/update-data.yml` : '';
+    box.innerHTML = `目前還沒有任何自動更新的資料，所以連載中作品的卷數與下一卷日期會顯示「未知／未公布」。請先到 GitHub 執行一次資料更新${url ? `：<a href="${url}" target="_blank" rel="noopener">開啟 Update data</a>（按 Run workflow）` : '（Actions → Update data → Run workflow）'}。`;
+    box.hidden = false;
+  } else box.hidden = true;
+}
+
+const MAL_STATUS = { F:'FINISHED', P:'RELEASING', H:'HIATUS', D:'CANCELLED', N:'NOT_YET_RELEASED' };
+
+function viewOne(m){
+  const o = manual[m.id] || {}, a = auto[m.id] || {}, z = zhIdx[m.id];
+  const mm = mal[m.id], bb = bgm[m.id];
+  const t = m.title || {};
+  const zh = o.zh || (z && z[0]) || '';
+  const names = { zh: zh || t.native, native: t.native, romaji: t.romaji, english: t.english };
+  const primary = names[state.lang] || t.native || t.romaji || t.english || '(無標題)';
+  const others = [...new Set([zh, t.native, t.romaji, t.english].filter(x => x && x !== primary))];
+  const status = o.status || m.status || MAL_STATUS[mm?.s] || null;
+
+  /* 卷數：多個來源交叉補值。完結作品以 AniList 優先；連載中取最大值（卷數只會增加，較小的多半是舊資料） */
+  const rname = a.src === 'g' ? 'Google Books' : '樂天';
+  const volAll = [['AniList', m.volumes], ['MAL', mm?.v], ['Bangumi', bb?.v], [rname, a.released]].filter(x => x[1]);
+  let volumes = null, volSrc = '';
+  if (o.volumes != null){ volumes = o.volumes; volSrc = '手動'; }
+  else if (volAll.length){
+    const pick = status === 'FINISHED' ? volAll[0] : volAll.reduce((x, y) => y[1] > x[1] ? y : x);
+    [volSrc, volumes] = pick;
+  }
+
+  const sources = ['AniList'];
+  if (mm) sources.push('MAL');
+  if (bb) sources.push('Bangumi');
+  if (a.released || a.next || a.latest) sources.push(rname);
+  if (o.volumes != null || o.status || o.next) sources.push('手動');
+
+  const f1 = x => (x ? Number(x).toFixed(1) : '');
+  return {
+    id: m.id,
+    title: primary,
+    sub: others.join('／'),
+    zhName: zh, names: { native: t.native || '', romaji: t.romaji || '', english: t.english || '' },
+    cover: m.coverImage?.large || '',
+    color: m.coverImage?.color || '',
+    volumes, volSrc, volAll, status, sources, rname, ck: a.ck || '',
+    next: nextOf(m.id),
+    latest: a.latest || null,
+    start: fmtDate(m.startDate) || (mm?.f ? mm.f.replace(/-/g, '/') : ''),
+    end: fmtDate(m.endDate) || (status === 'FINISHED' && mm?.t ? mm.t.replace(/-/g, '/') : ''),
+    scores: { AniList: f1(m.averageScore ? m.averageScore / 10 : 0), MAL: f1(mm?.sc), Bangumi: f1(bb?.sc) },
+    links: {
+      anilist: m.siteUrl,
+      mal: mm?.m ? `https://myanimelist.net/manga/${mm.m}` : '',
+      bgm: bb?.b ? `https://bgm.tv/subject/${bb.b}` : ''
+    },
+    genres: m.genres || [],
+    desc: plain(m.description),
+    url: m.siteUrl,
+    note: o.note || ''
+  };
+}
+
+/* 系列層級：同一系列的所有分冊合併計算 */
+function buildEntries(){
+  const out = [], seen = new Set();
+  for (const m of state.items){
+    const gi = state.group ? groupOf.get(m.id) : undefined;
+    const key = gi === undefined ? 'm' + m.id : 'g' + gi;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const ids = gi === undefined ? [m.id] : groups[gi].filter(id => cache.has(id));
+    out.push({ key, ids: ids.length ? ids : [m.id] });
+  }
+  return out;
+}
+
+function viewEntry(e){
+  const parts = e.ids.map(id => viewOne(cache.get(id))).filter(Boolean);
+  const head = parts[0];
+  if (parts.length === 1) return { ...head, key: e.key, parts, multi: false };
+  const known = parts.filter(p => p.volumes);
+  const volumes = known.length ? known.reduce((n, p) => n + p.volumes, 0) : null;
+  const sts = parts.map(p => p.status);
+  let status;
+  if (sts.includes('RELEASING')) status = 'RELEASING';
+  else if (sts.includes('NOT_YET_RELEASED')) status = sts.some(x => x !== 'NOT_YET_RELEASED') ? 'RELEASING' : 'NOT_YET_RELEASED';
+  else if (sts.includes('HIATUS')) status = 'HIATUS';
+  else if (sts[sts.length - 1] === 'CANCELLED') status = 'CANCELLED';
+  else status = 'FINISHED';
+  const zhs = parts.map(p => p.zhName).filter(Boolean).sort((a, b) => a.length - b.length);
+  const seriesTitle = state.lang === 'zh' && zhs.length ? zhs[0] : head.title;
+  const seriesSub = [...new Set([head.zhName, head.names.native, head.names.romaji, head.names.english].filter(x => x && x !== seriesTitle))].join('／');
+  const nexts = parts.map(p => p.next).filter(Boolean).sort((a, b) => nextKey(a).localeCompare(nextKey(b)));
+  return {
+    ...head, title: seriesTitle, sub: seriesSub, key: e.key, parts, multi: true, volumes, status,
+    next: nexts[0] || null,
+    latest: [...parts].reverse().find(p => p.latest)?.latest || null,
+    sources: [...new Set(parts.flatMap(p => p.sources))],
+    end: status === 'FINISHED' ? parts[parts.length - 1].end : '',
+    partial: parts.some(p => !p.volumes && p.status !== 'NOT_YET_RELEASED')
+  };
+}
+
+function entriesFiltered(){
+  let list = buildEntries().map(e => ({ e, v: viewEntry(e) }));
+  if (state.group && state.status && state.status !== '__NEXT') list = list.filter(x => x.v.status === state.status);
+  return list;
+}
+
+function nextLabel(n){
+  const vol = n.volume ? `第 ${esc(n.volume)} 卷` : '下一卷';
+  return n.date
+    ? `${vol}：<b>${esc(n.date)}</b> ${countdown(n.date)}`
+    : `${vol}：<b>約 ${esc(n.approx || '日期未定')}</b>`;
+}
+
+function shelfHTML(v){
+  const n = v.volumes;
+  const spines = [];
+  if (n){
+    const shown = Math.min(n, 24);
+    for (let i = 0; i < shown; i++) spines.push('<i></i>');
+    if (v.status !== 'FINISHED' && v.next) spines.push('<i class="next-spine" title="下一卷"></i>');
+    return `<div class="shelf" aria-hidden="true">${spines.join('')}${n > 24 ? `<small>+${n-24}</small>` : ''}</div>`;
+  }
+  if (v.status === 'NOT_YET_RELEASED') return '';
+  return `<div class="shelf" aria-hidden="true"><i class="unknown"></i><i class="unknown"></i><i class="unknown"></i><small>卷數待補</small></div>`;
+}
+
+function nextHTML(v){
+  if (v.status === 'FINISHED') return `<span class="next none">全 ${v.volumes ?? '?'} 卷，已完結</span>`;
+  if (v.status === 'CANCELLED') return `<span class="next none">已中止，無後續</span>`;
+  if (v.next) return `<span class="next">日版${nextLabel(v.next)}</span>`;
+  if (v.status === 'NOT_YET_RELEASED') return `<span class="next none">發售日${v.start ? '：' + v.start : '未公布'}</span>`;
+  return `<span class="next none">下一卷：未公布</span>`;
+}
+
+function latestHTML(v){
+  if (!v.latest || v.status === 'FINISHED') return '';
+  return `<span class="next none">最新刊：第 ${esc(v.latest.volume)} 卷（${esc(String(v.latest.date).replace(/-/g, '/'))}）</span>`;
+}
+
+/* ---------- render ---------- */
+function cardHTML(v){
+  const st = STATUS[v.status] || { label:'狀態不明', cls:'b-new' };
+  const vol = v.volumes ? `<span class="vol"><strong>${v.volumes}</strong>${v.partial ? '+' : ''} 卷${v.status === 'RELEASING' ? '（已出）' : ''}</span>` : `<span class="vol">卷數未知</span>`;
+  const partsBadge = v.multi ? `<span class="badge b-new" title="${esc(v.parts.map(p => partLabel(p, v)).join('、'))}">${v.parts.length} 個分冊</span>` : '';
+  return `<button class="card" data-key="${esc(v.key)}" aria-label="${esc(v.title)}，${st.label}">
+    <img class="cover" loading="lazy" alt="" src="${esc(v.cover)}" style="background:${esc(v.color||'')}">
+    <div class="info">
+      <h2 class="title">${esc(v.title)}</h2>
+      ${v.sub ? `<p class="sub">${esc(v.sub)}</p>` : ''}
+      <div class="row"><span class="badge ${st.cls}">${st.label}</span>${vol}${partsBadge}</div>
+      ${nextHTML(v)}
+      ${latestHTML(v)}
+      ${shelfHTML(v)}
+    </div>
+  </button>`;
+}
+
+function sortedItems(){
+  const list = entriesFiltered();
+  if (state.status === '__NEXT') list.sort((a, b) => nextKey(a.v.next).localeCompare(nextKey(b.v.next)));
+  return list;
+}
+
+function render(){
+  const list = sortedItems();
+  const grid = $('#grid');
+  if (!list.length){
+    grid.innerHTML = `<div class="state" style="grid-column:1/-1"><strong>找不到符合的作品</strong>${state.hasNext ? '目前這幾頁沒有符合的系列，' : ''}試試中文、日文原名或羅馬拼音，或清除篩選條件。</div>`;
+    $('#count').textContent = '0 部作品';
+  } else {
+    grid.innerHTML = list.map(x => cardHTML(x.v)).join('');
+    const more = state.hasNext ? '，還有更多' : '';
+    $('#count').textContent = state.status === '__NEXT'
+      ? `已公布新刊日：已顯示 ${list.length} 部（依發售日排序）${more}`
+      : state.group
+        ? `已顯示 ${list.length} 個系列${more}`
+        : `共 ${state.total.toLocaleString()} 部，已顯示 ${list.length} 部`;
+  }
+  $('#moreBtn').hidden = !state.hasNext;
+}
+
+function renderSkeleton(){
+  $('#grid').innerHTML = Array.from({length:6}, () => '<div class="skeleton"></div>').join('');
+  $('#count').textContent = '載入中…';
+  $('#moreBtn').hidden = true;
+}
+
+function showError(err){
+  $('#grid').innerHTML = `<div class="state" style="grid-column:1/-1"><strong>資料載入失敗</strong>${esc(err.message || '網路錯誤')}。請檢查網路後按「立即更新」。</div>`;
+  $('#count').textContent = '—';
+}
+
+function stamp(){
+  const d = new Date();
+  $('#updated').textContent = `最後更新 ${d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}`;
+}
+
+/* ---------- dialog ---------- */
+/* ---------- 詳情：延遲載入的多來源資料 ---------- */
+const GENRE_ZH = { Action:'動作', Adventure:'冒險', Comedy:'喜劇', Drama:'劇情', Ecchi:'賣肉', Fantasy:'奇幻', Horror:'恐怖', 'Mahou Shoujo':'魔法少女', Mecha:'機戰', Music:'音樂', Mystery:'懸疑', Psychological:'心理', Romance:'戀愛', 'Sci-Fi':'科幻', 'Slice of Life':'日常', Sports:'運動', Supernatural:'超自然', Thriller:'驚悚' };
+const TAG_ZH = { Isekai:'異世界', School:'校園', 'Male Protagonist':'男主角', 'Female Protagonist':'女主角', Harem:'後宮', 'Female Harem':'後宮', 'Male Harem':'逆後宮', Reincarnation:'轉生', Magic:'魔法', Swordplay:'劍戟', 'Video Games':'電子遊戲', 'Virtual World':'虛擬世界', 'Coming of Age':'成長', 'Ensemble Cast':'群像劇', Politics:'政治', War:'戰爭', 'Time Loop':'時間迴圈', 'Post-Apocalyptic':'後末日', Survival:'生存', 'Heroic Fantasy':'英雄奇幻', 'Anti-Hero':'反英雄', Tragedy:'悲劇', Historical:'歷史', Military:'軍事', Vampire:'吸血鬼', Demons:'惡魔', Gods:'神祇', 'Super Power':'超能力', 'Monster Girls':'魔物娘', Cultivation:'修仙', 'Otaku Culture':'御宅文化', 'Love Triangle':'三角戀', Tsundere:'傲嬌', Yandere:'病嬌', Cyberpunk:'賽博龐克', Space:'太空', Detective:'偵探', Crime:'犯罪', Philosophy:'哲學', 'Battle Royale':'大逃殺', 'Kingdom Management':'王國經營', 'Urban Fantasy':'都市奇幻', 'Alternate Universe':'平行世界', 'Death Game':'死亡遊戲', Cooking:'料理', Idol:'偶像', Youkai:'妖怪', Ghost:'幽靈', Robots:'機器人', 'Artificial Intelligence':'人工智慧', Mythology:'神話', Assassins:'刺客', Nobility:'貴族', Slavery:'奴隸', Overpowered:'無雙' };
+const ROLE_ZH = { Story:'作者', 'Story & Art':'作者／插畫', Art:'插畫', Illustration:'插畫', 'Original Creator':'原作', 'Original Story':'原作' };
+const SHARD = 1000;
+const detailCache = new Map(), aniCache = new Map();
+
+async function loadDetail(id){
+  const sh = Math.floor(id / SHARD);
+  if (!detailCache.has(sh)) detailCache.set(sh, loadJSON(`data/detail/${sh}.json`).then(j => j || {}));
+  return (await detailCache.get(sh))[id] || {};
+}
+
+const ANI_DETAIL = `
+query($id:Int){
+  Media(id:$id,type:MANGA){
+    idMal popularity favourites
+    genres tags{ name rank isGeneralSpoiler isMediaSpoiler }
+    externalLinks{ site url type }
+    staff(perPage:10,sort:RELEVANCE){ edges{ role node{ name{ full native } } } }
+  }
+}`;
+function aniDetail(id){
+  if (!aniCache.has(id)) aniCache.set(id, gql(ANI_DETAIL, { id }).then(d => d.Media).catch(() => null));
+  return aniCache.get(id);
+}
+
+const srcTag = name => name ? `<span class="src">${esc(name)}</span>` : '';
+const list = x => (Array.isArray(x) ? x : x ? [x] : []).filter(Boolean);
+
+/* 依優先順序從多個來源挑第一個有值的：pairs = [[值, 來源名], ...] */
+function firstOf(...pairs){
+  for (const [val, src] of pairs){
+    const arr = list(val);
+    if (arr.length) return { text: arr.join('、'), src };
+  }
+  return null;
+}
+
+function staffBy(ani, re){
+  const names = (ani?.staff?.edges || []).filter(e => re.test(e.role || '')).map(e => e.node?.name?.native || e.node?.name?.full);
+  return names.filter(Boolean).slice(0, 3);
+}
+
+function extraHTML(v, ani, det){
+  const rkt = det.rkt || {}, bg = det.bgm || {}, ml = det.mal || {};
+  const RK = rkt.src === 'g' ? 'Google Books' : '樂天';
+  const rows = [];
+  const add = (label, hit) => { if (hit) rows.push(`<dt>${label}</dt><dd>${esc(hit.text)}${srcTag(hit.src)}</dd>`); };
+
+  add('作者', firstOf([rkt.au, RK], [staffBy(ani, /Story|Original/i), 'AniList'], [bg.au, 'Bangumi'], [ml.au, 'MAL']));
+  add('插畫', firstOf([staffBy(ani, /Art|Illust/i), 'AniList'], [bg.il, 'Bangumi']));
+  add('出版社', firstOf([rkt.pub, RK], [bg.pub, 'Bangumi']));
+  add('叢書／連載', firstOf([bg.label, 'Bangumi'], [bg.mag, 'Bangumi'], [ml.z, 'MAL']));
+  if (rkt.first) rows.push(`<dt>首刊</dt><dd>${esc(rkt.first.replace(/-/g, '/'))}${srcTag(RK)}</dd>`);
+  else if (bg.date && !v.start) rows.push(`<dt>首刊</dt><dd>${esc(bg.date.replace(/-/g, '/'))}${srcTag('Bangumi')}</dd>`);
+  if (rkt.latest) {
+    const l = rkt.latest;
+    rows.push(`<dt>最新刊</dt><dd>第 ${esc(l.volume)} 卷・${esc(l.date.replace(/-/g, '/'))}${l.price ? `・¥${esc(l.price)}` : ''}${srcTag(RK)}</dd>`);
+  }
+  const sc = Object.entries(v.scores).filter(([, x]) => x);
+  if (sc.length) rows.push(`<dt>評分</dt><dd>${sc.map(([k, x]) => `${esc(k)} ${x}`).join('・')}<span class="src">滿分 10</span></dd>`);
+  if (v.volAll.length > 1) rows.push(`<dt>卷數對照</dt><dd>${v.volAll.map(([k, n]) => `${esc(k)} ${n}`).join('・')}</dd>`);
+
+  // 標籤：Bangumi（中文）優先，其次 AniList（常見的翻成中文）
+  let tags = list(bg.tags), tagSrc = 'Bangumi';
+  if (!tags.length){
+    tagSrc = 'AniList';
+    const g = (ani?.genres || v.genres).map(x => GENRE_ZH[x] || x);
+    const t = (ani?.tags || []).filter(x => !x.isGeneralSpoiler && !x.isMediaSpoiler && x.rank >= 50).slice(0, 10).map(x => TAG_ZH[x.name] || x.name);
+    tags = [...new Set([...g, ...t])];
+  }
+
+  const ext = (ani?.externalLinks || []).filter(l => l.type === 'INFO' || /official|twitter|bookwalker|kadokawa/i.test(l.site)).slice(0, 5);
+  const links = [
+    v.links.anilist && ['AniList', v.links.anilist],
+    v.links.mal && ['MyAnimeList', v.links.mal],
+    v.links.bgm && ['Bangumi', v.links.bgm],
+    v.next?.url && ['樂天（預購）', v.next.url],
+    ...ext.map(l => [l.site, l.url])
+  ].filter(Boolean);
+
+  const desc = bg.sum
+    ? `<div class="desc-label">簡介${srcTag('Bangumi')}<span class="src">簡體轉繁體</span></div><div class="desc">${esc(bg.sum)}</div>`
+    : v.desc ? `<div class="desc-label">簡介${srcTag('AniList')}</div><div class="desc">${esc(v.desc)}</div>` : '';
+
+  return `${rows.length ? `<dl class="facts">${rows.join('')}</dl>` : ''}
+    ${tags.length ? `<div class="tags" aria-label="標籤">${tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
+    ${desc}
+    <div class="links">${links.map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a>`).join('')}</div>`;
+}
+
+function partLabel(p, v){
+  const t = p.title;
+  for (const pre of [v.title, v.names.native]){
+    if (pre && t !== pre && t.startsWith(pre)){
+      const rest = t.slice(pre.length).replace(/^[\s　:：\-–—～~・]+/, '').trim();
+      if (rest) return rest;
+    }
+  }
+  return (t === v.title || t === v.names.native) ? '本篇' : t;
+}
+
+function partsHTML(v){
+  if (!v.multi) return '';
+  const rows = v.parts.map(p => {
+    const st = STATUS[p.status] || { label:'狀態不明', cls:'b-new' };
+    const vol = p.volumes ? `${p.volumes} 卷` : '卷數未知';
+    const nx = p.status !== 'FINISHED' && p.next ? `<span class="next">日版${nextLabel(p.next)}</span>` : '';
+    return `<li><a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title)}">${esc(partLabel(p, v))}</a>
+      <span class="badge ${st.cls}">${st.label}</span>
+      <span class="pm"><span>${vol}</span>${nx}</span></li>`;
+  }).join('');
+  return `<h3>分冊（依發售順序）</h3><ul class="parts">${rows}</ul>`;
+}
+
+let dialogToken = 0;
+function openDetail(key){
+  const e = buildEntries().find(x => x.key === key); if (!e) return;
+  const v = viewEntry(e);
+  const st = STATUS[v.status] || { label:'狀態不明', cls:'b-new' };
+  const token = ++dialogToken;
+  $('#dlg').innerHTML = `<div class="dlg">
+    <img class="cover" alt="" src="${esc(v.cover)}">
+    <div>
+      <h2>${esc(v.title)}</h2>
+      ${v.sub ? `<p class="sub">${esc(v.sub)}</p>` : ''}
+      <p class="srcline">資料來源：${v.sources.map(esc).join('・')}${v.ck ? `・${esc(v.rname)}檢查於 ${esc(v.ck.replace(/-/g, '/'))}` : ''}</p>
+      <dl class="facts">
+        <dt>狀態</dt><dd><span class="badge ${st.cls}">${st.label}</span></dd>
+        <dt>卷數</dt><dd>${v.volumes ? v.volumes + (v.partial ? '+' : '') + ' 卷' + (v.multi ? '（各分冊加總）' : srcTag(v.volSrc)) : '未知'}</dd>
+        <dt>下一卷</dt><dd>${v.status === 'FINISHED' ? '已完結' : v.next ? '日版' + nextLabel(v.next) + srcTag(manual[v.id]?.next ? '手動' : v.rname) : '未公布'}</dd>
+        <dt>開始</dt><dd>${v.start || '—'}</dd>
+        ${v.end ? `<dt>完結</dt><dd>${v.end}</dd>` : ''}
+        ${v.note ? `<dt>備註</dt><dd>${esc(v.note)}</dd>` : ''}
+      </dl>
+      <div id="dExtra"><div class="loading-line">載入更多資料…</div></div>
+      ${partsHTML(v)}
+      <div class="dlg-actions"><button id="closeDlg">關閉</button></div>
+    </div>
+  </div>`;
+  $('#dlg').showModal();
+  $('#closeDlg').onclick = () => $('#dlg').close();
+
+  // 作者、簡介、標籤等資料在開啟時才向 AniList 與分片檔取得
+  Promise.allSettled([aniDetail(v.id), loadDetail(v.id)]).then(([a, d]) => {
+    if (token !== dialogToken) return;
+    const box = $('#dExtra'); if (!box) return;
+    box.innerHTML = extraHTML(v, a.value || null, d.value || {});
+  });
+}
+
+/* ---------- events ---------- */
+function initChips(){
+  $('#chips').innerHTML = CHIPS.map(c => `<button class="chip" data-k="${c.key}" aria-pressed="${c.key === state.status}">${c.label}</button>`).join('');
+}
+$('#chips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  state.status = b.dataset.k;
+  document.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+  load(true);
+});
+$('#grid').addEventListener('click', e => {
+  const c = e.target.closest('.card'); if (c) openDetail(c.dataset.key);
+});
+$('#dlg').addEventListener('click', e => { if (e.target === $('#dlg')) $('#dlg').close(); });
+$('#moreBtn').addEventListener('click', () => load(false));
+$('#refresh').addEventListener('click', async () => { await loadData(); load(true); });
+$('#sort').addEventListener('change', e => { state.sort = e.target.value; load(true); });
+$('#groupToggle').addEventListener('change', e => { state.group = e.target.checked; localStorageSafe('set','ln-group', state.group ? '1' : '0'); load(true); });
+$('#lang').addEventListener('change', e => { state.lang = e.target.value; localStorageSafe('set','ln-lang2',state.lang); render(); });
+
+let timer;
+$('#q').addEventListener('input', e => {
+  state.q = e.target.value;
+  $('#searchBox').classList.toggle('has-text', !!state.q);
+  clearTimeout(timer);
+  timer = setTimeout(() => load(true), 350);
+});
+$('#clearBtn').addEventListener('click', () => {
+  $('#q').value = ''; state.q = ''; $('#searchBox').classList.remove('has-text'); $('#q').focus(); load(true);
+});
+
+function localStorageSafe(op, k, v){
+  try{ return op === 'set' ? localStorage.setItem(k, v) : localStorage.getItem(k); }catch(e){ return null; }
+}
+$('#themeBtn').addEventListener('click', () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  localStorageSafe('set','ln-theme',root.dataset.theme);
+});
+
+/* ---------- boot ---------- */
+(async function(){
+  const th = localStorageSafe('get','ln-theme'); if (th) document.documentElement.dataset.theme = th;
+  const lg = localStorageSafe('get','ln-lang2'); if (lg && [...$('#lang').options].some(o => o.value === lg)){ state.lang = lg; }
+  $('#lang').value = state.lang;
+  if (localStorageSafe('get','ln-group') === '0'){ state.group = false; $('#groupToggle').checked = false; }
+  initChips();
+  renderSkeleton();
+  await loadData();
+  await load(true);
+  setInterval(silentRefresh, REFRESH_MS);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) silentRefresh(); });
+})();
+</script>
+</body>
+</html>

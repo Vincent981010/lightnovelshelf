@@ -1,0 +1,124 @@
+name: Update data
+
+on:
+  # 上傳新版程式（scripts、workflow、package.json）後自動跑一次。data/ 的變動不會觸發，所以不會無限循環
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/update-data.yml'
+  schedule:
+    - cron: '20 18 * * *'        # 完整更新：每天 台灣時間 02:20
+    - cron: '20 0,6,12 * * *'    # 輕量更新（只更新發售資料）：台灣時間 08:20、14:20、20:20
+  workflow_dispatch:
+    inputs:
+      force_mal:
+        description: '強制重抓 MyAnimeList（否則每 6 天一次）'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  issues: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Unit tests
+        run: node scripts/test.mjs
+
+      # 這一步失敗就整個中止（後面都需要它的產出）
+      - name: 1. AniList catalog (all light novels + relations)
+        run: node scripts/crawl-anilist.mjs
+
+      # 網站直接讀這份目錄（搜尋、篩選、系列合併都在瀏覽器本機完成，不再呼叫 AniList）
+      - name: 1b. Site catalog
+        run: node scripts/build-catalog.mjs
+      - name: Commit catalog
+        if: ${{ !cancelled() }}
+        run: bash scripts/commit.sh catalog
+
+      # 之後每個資料來源各自獨立，跑完立刻 commit：某個來源失敗不影響其他來源，也能逐步看到資料
+      - name: 2. Series groups (merge 1年生編 / 2年生編 ...)
+        if: ${{ github.event.schedule != '20 0,6,12 * * *' && !cancelled() }}
+        continue-on-error: true
+        run: node scripts/build-series.mjs
+      - name: Commit series
+        if: ${{ !cancelled() }}
+        run: bash scripts/commit.sh series
+
+      - name: 3. MyAnimeList via Jikan (volumes, status, dates, score)
+        if: ${{ github.event.schedule != '20 0,6,12 * * *' && !cancelled() }}
+        continue-on-error: true
+        run: node scripts/fetch-mal.mjs
+        env:
+          FORCE: ${{ inputs.force_mal && '1' || '' }}
+      - name: Commit MAL
+        if: ${{ !cancelled() }}
+        run: bash scripts/commit.sh mal
+
+      - name: 4. Rakuten Books / Google Books (released volumes, next release, latest, author, publisher)
+        continue-on-error: true
+        run: node scripts/update-next-volumes.mjs
+        env:
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_ORIGIN: ${{ secrets.RAKUTEN_ORIGIN }}
+          GOOGLE_BOOKS_KEY: ${{ secrets.GOOGLE_BOOKS_KEY }}
+      - name: Commit Rakuten
+        if: ${{ !cancelled() }}
+        run: bash scripts/commit.sh rakuten
+
+      - name: 5. Bangumi (Chinese synopsis, tags, author, publisher)
+        if: ${{ github.event.schedule != '20 0,6,12 * * *' && !cancelled() }}
+        continue-on-error: true
+        run: node scripts/fetch-bangumi.mjs
+      - name: Commit Bangumi
+        if: ${{ !cancelled() }}
+        run: bash scripts/commit.sh bangumi
+
+      - name: 6. Chinese title index (Wikidata + AniList + Bangumi)
+        if: ${{ github.event.schedule != '20 0,6,12 * * *' && !cancelled() }}
+        continue-on-error: true
+        run: node scripts/build-zh-index.mjs
+      - name: Commit Chinese titles
+        if: ${{ !cancelled() }}
+        run: bash scripts/commit.sh zh-titles
+
+      # 金鑰快到期、或被樂天拒絕時，自動開一則 Issue 提醒你（GitHub 會寄 email）
+      - name: Check Rakuten key status
+        id: keys
+        if: ${{ !cancelled() }}
+        run: node scripts/check-keys.mjs
+        env:
+          RAKUTEN_EXPIRES: ${{ vars.RAKUTEN_EXPIRES }}
+      - name: Open reminder issue
+        if: ${{ steps.keys.outputs.need == 'true' && !cancelled() }}
+        run: |
+          gh label create key-expiry --color FBCA04 --description "API key needs attention" 2>/dev/null || true
+          if [ -z "$(gh issue list --label key-expiry --state open --json number --jq '.[0].number')" ]; then
+            gh issue create --title "$(cat .cache/key-issue-title.txt)" --body-file .cache/key-issue.md --label key-expiry
+          else
+            echo "已有未關閉的提醒 Issue，不重複建立"
+          fi
