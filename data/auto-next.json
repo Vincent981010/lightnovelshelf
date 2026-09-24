@@ -1,4 +1,4 @@
-{"v":1,"source":"Rakuten Books / Google Books","updated":"2026-09-24T17:20:37.460Z","items":{
+{"v":1,"source":"Rakuten Books / Google Books","updated":"2026-09-24T21:46:27.373Z","items":{
 "31401":{"src":"r","ck":"2026-09-23","released":6,"latest":{"volume":6,"date":"2010-01-31"}},
 "31423":{"src":"r","ck":"2026-09-22","released":5,"latest":{"volume":5,"date":"2019-04-26"}},
 "33074":{"src":"r","ck":"2026-09-22","released":18,"latest":{"volume":18,"date":"2009-02-10"}},
@@ -2160,5 +2160,6 @@
 "217118":{"src":"r","ck":"2026-09-24","released":1,"latest":{"volume":1,"date":"2020-12-04"}},
 "217265":{"src":"r","ck":"2026-09-24","released":2,"latest":{"volume":2,"date":"2026-07-17"}},
 "217269":{"src":"r","ck":"2026-09-24","released":2,"latest":{"volume":2,"date":"2026-08-20"}},
-"217270":{"src":"r","ck":"2026-09-24","released":1,"latest":{"volume":1,"date":"2026-08-31"}}
+"217270":{"src":"r","ck":"2026-09-24","released":1,"latest":{"volume":1,"date":"2026-08-31"}},
+"217293":{"src":"r","ck":"2026-09-25","released":1,"next":{"volume":2,"date":"2026-11-25","url":"https://books.rakuten.co.jp/rb/18822550/"},"latest":{"volume":1,"date":"2026-09-25"}}
 }}
