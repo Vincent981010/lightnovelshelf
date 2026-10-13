@@ -1,4 +1,4 @@
-{"v":1,"source":"Rakuten Books / Google Books","updated":"2026-10-13T01:34:23.313Z","items":{
+{"v":1,"source":"Rakuten Books / Google Books","updated":"2026-10-13T06:58:46.670Z","items":{
 "31401":{"src":"r","ck":"2026-09-23","released":6,"latest":{"volume":6,"date":"2010-01-31"}},
 "31423":{"src":"r","ck":"2026-09-22","released":5,"latest":{"volume":5,"date":"2019-04-26"}},
 "33074":{"src":"r","ck":"2026-09-22","released":18,"latest":{"volume":18,"date":"2009-02-10"}},
@@ -688,7 +688,7 @@
 "119283":{"src":"r","ck":"2026-10-13","released":14,"latest":{"volume":14,"date":"2025-12-13"}},
 "119352":{"src":"r","ck":"2026-10-13","released":8,"latest":{"volume":8,"date":"2022-01-28"}},
 "119415":{"src":"r","ck":"2026-09-23"},
-"119417":{"src":"r","ck":"2026-10-12","released":5,"latest":{"volume":5,"date":"2020-11-19"}},
+"119417":{"src":"r","ck":"2026-10-13","released":5,"latest":{"volume":5,"date":"2020-11-19"}},
 "119547":{"src":"r","ck":"2026-10-13","released":5,"latest":{"volume":5,"date":"2025-09-30"}},
 "119672":{"src":"r","ck":"2026-09-23"},
 "119704":{"src":"r","ck":"2026-10-13","released":19,"latest":{"volume":19,"date":"2026-09-09"}},
@@ -2050,7 +2050,7 @@
 "198651":{"src":"r","ck":"2026-10-13","released":3,"latest":{"volume":3,"date":"2026-01-30"}},
 "198771":{"src":"r","ck":"2026-10-13","next":{"volume":2,"date":"2026-10-30","url":"https://books.rakuten.co.jp/rb/18658531/"}},
 "198779":{"src":"r","ck":"2026-10-13","released":1,"latest":{"volume":1,"date":"2025-08-01"}},
-"199071":{"src":"r","ck":"2026-10-12","released":3,"latest":{"volume":3,"date":"2026-02-20"}},
+"199071":{"src":"r","ck":"2026-10-13","released":3,"latest":{"volume":3,"date":"2026-02-20"}},
 "199507":{"src":"r","ck":"2026-10-13","released":4,"latest":{"volume":4,"date":"2026-09-01"}},
 "199559":{"src":"r","ck":"2026-09-24","released":4,"latest":{"volume":4,"date":"2024-08-30"}},
 "199563":{"src":"r","ck":"2026-09-24","released":5,"latest":{"volume":5,"date":"2025-07-01"}},
