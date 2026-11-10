@@ -1,4 +1,4 @@
-{"v":1,"source":"Rakuten Books / Google Books","updated":"2026-11-10T02:25:00.212Z","items":{
+{"v":1,"source":"Rakuten Books / Google Books","updated":"2026-11-10T07:30:14.913Z","items":{
 "38876":{"src":"r","ck":"2026-11-10","released":17,"latest":{"volume":17,"date":"2019-10-19"}},
 "41263":{"src":"r","ck":"2026-11-10","released":7,"latest":{"volume":7,"date":"2021-05-08"}},
 "42297":{"src":"r","ck":"2026-11-10","released":20,"latest":{"volume":20,"date":"2015-05-25"}},
@@ -1548,5 +1548,6 @@
 "219547":{"src":"r","ck":"2026-11-10","released":5,"latest":{"volume":5,"date":"2024-08-27"}},
 "219578":{"src":"r","ck":"2026-11-10","released":2,"latest":{"volume":2,"date":"2026-10-01"}},
 "219640":{"src":"r","ck":"2026-11-10","released":4,"latest":{"volume":4,"date":"2026-07-16"}},
-"219658":{"src":"r","ck":"2026-11-10","released":1,"latest":{"volume":1,"date":"2026-06-25"}}
+"219658":{"src":"r","ck":"2026-11-10","released":1,"latest":{"volume":1,"date":"2026-06-25"}},
+"219757":{"src":"r","ck":"2026-11-10","released":3,"latest":{"volume":3,"date":"2026-06-13"}}
 }}
